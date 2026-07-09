@@ -1,14 +1,12 @@
 import { useState, useEffect } from "react";
+import { apiFetch } from "../utils/api.js";
 
 export default function MissButton({ apiUrl, partnerName }) {
   const [sent, setSent] = useState(null);
   const [stats, setStats] = useState(null);
 
   const fetchStats = () => {
-    fetch(`${apiUrl}/api/miss/stats`, {
-      headers: { "X-Telegram-Init-Data": window.Telegram?.WebApp?.initData || "" },
-    })
-      .then((r) => r.json())
+    apiFetch(apiUrl, "/api/miss/stats")
       .then(setStats)
       .catch(() => {});
   };
@@ -19,15 +17,10 @@ export default function MissButton({ apiUrl, partnerName }) {
 
   const handleSend = async (intensity) => {
     try {
-      const res = await fetch(`${apiUrl}/api/miss/send`, {
+      const data = await apiFetch(apiUrl, "/api/miss/send", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Telegram-Init-Data": window.Telegram?.WebApp?.initData || "",
-        },
         body: JSON.stringify({ intensity }),
       });
-      const data = await res.json();
       setSent(data);
       fetchStats();
       setTimeout(() => setSent(null), 3000);

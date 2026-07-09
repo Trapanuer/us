@@ -50,6 +50,7 @@ export default function App() {
 
   useEffect(() => {
     const tgUser = getTelegramUser();
+    if (tgUser) sessionStorage.setItem("tg_user", JSON.stringify(tgUser));
     setUser(tgUser);
     setReady(true);
     try {

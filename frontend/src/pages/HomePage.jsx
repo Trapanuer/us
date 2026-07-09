@@ -2,16 +2,14 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Countdown from "../components/Countdown.jsx";
 import MissButton from "../components/MissButton.jsx";
+import { apiFetch } from "../utils/api.js";
 
 export default function HomePage({ user, apiUrl }) {
   const location = useLocation();
   const [partnerName, setPartnerName] = useState("Партнёр");
 
   useEffect(() => {
-    fetch(`${apiUrl}/api/settings`, {
-      headers: { "X-Telegram-Init-Data": window.Telegram?.WebApp?.initData || "" },
-    })
-      .then((r) => r.json())
+    apiFetch(apiUrl, "/api/settings")
       .then((data) => {
         if (data.names) {
           const myRole = user.id?.toString() === import.meta.env.VITE_USER_A_ID ? "A" : "B";

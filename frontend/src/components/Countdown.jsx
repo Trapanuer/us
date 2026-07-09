@@ -1,20 +1,18 @@
 import { useState, useEffect } from "react";
+import { apiFetch } from "../utils/api.js";
 
 export default function Countdown({ apiUrl }) {
   const [data, setData] = useState(null);
 
   useEffect(() => {
     const fetchCountdown = () => {
-      fetch(`${apiUrl}/api/countdown`, {
-        headers: { "X-Telegram-Init-Data": window.Telegram?.WebApp?.initData || "" },
-      })
-        .then((r) => r.json())
+      apiFetch(apiUrl, "/api/countdown")
         .then(setData)
         .catch(() => {});
     };
 
     fetchCountdown();
-    const interval = setInterval(fetchCountdown, 60000); // refresh every minute
+    const interval = setInterval(fetchCountdown, 60000);
     return () => clearInterval(interval);
   }, [apiUrl]);
 

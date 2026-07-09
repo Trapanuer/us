@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { apiFetch } from "../utils/api.js";
 
 export default function SettingsPage({ user, apiUrl }) {
   const location = useLocation();
@@ -9,10 +10,7 @@ export default function SettingsPage({ user, apiUrl }) {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    fetch(`${apiUrl}/api/settings`, {
-      headers: { "X-Telegram-Init-Data": window.Telegram?.WebApp?.initData || "" },
-    })
-      .then((r) => r.json())
+    apiFetch(apiUrl, "/api/settings")
       .then((data) => {
         if (data.meetingDate) setMeetingDate(data.meetingDate.split("T")[0]);
         if (data.names) {
@@ -25,12 +23,8 @@ export default function SettingsPage({ user, apiUrl }) {
 
   const handleSave = async () => {
     try {
-      await fetch(`${apiUrl}/api/settings`, {
+      await apiFetch(apiUrl, "/api/settings", {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Telegram-Init-Data": window.Telegram?.WebApp?.initData || "",
-        },
         body: JSON.stringify({
           meetingDate: meetingDate ? new Date(meetingDate).toISOString() : null,
           names: { A: nameA, B: nameB },

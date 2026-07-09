@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { apiFetch } from "../utils/api.js";
 
 export default function MomentsPage({ user, apiUrl }) {
   const location = useLocation();
@@ -11,11 +12,8 @@ export default function MomentsPage({ user, apiUrl }) {
 
   const fetchMoments = async () => {
     try {
-      const res = await fetch(`${apiUrl}/api/moments`, {
-        headers: { "X-Telegram-Init-Data": window.Telegram?.WebApp?.initData || "" },
-      });
-      const data = await res.json();
-      setMoments(data);
+      const data = await apiFetch(apiUrl, "/api/moments");
+      setMoments(Array.isArray(data) ? data : []);
     } catch (e) {
       console.error(e);
     } finally {
@@ -31,12 +29,8 @@ export default function MomentsPage({ user, apiUrl }) {
     if (!newText.trim() && !photoPreview) return;
 
     try {
-      await fetch(`${apiUrl}/api/moments`, {
+      await apiFetch(apiUrl, "/api/moments", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Telegram-Init-Data": window.Telegram?.WebApp?.initData || "",
-        },
         body: JSON.stringify({
           text: newText,
           photoBase64: photoPreview,
@@ -69,7 +63,7 @@ export default function MomentsPage({ user, apiUrl }) {
     return d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
   };
 
-  const grouped = moments.reduce((acc, m) => {
+  const grouped = (moments || []).reduce((acc, m) => {
     const day = m.createdAt?.split("T")[0];
     if (!acc[day]) acc[day] = [];
     acc[day].push(m);
