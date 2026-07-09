@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { HashRouter, Routes, Route } from "react-router-dom";
+import { useState, useEffect, Component } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage.jsx";
 import MomentsPage from "./pages/MomentsPage.jsx";
 import SettingsPage from "./pages/SettingsPage.jsx";
@@ -25,10 +25,23 @@ function getTelegramUser() {
         return JSON.parse(userStr);
       }
     }
-  } catch (e) {
-    console.error("Parse error:", e);
-  }
+  } catch (e) {}
   return null;
+}
+
+class ErrorBoundary extends Component {
+  state = { error: null };
+  static getDerivedStateFromError(error) { return { error }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ padding: 20, fontFamily: "monospace", whiteSpace: "pre-wrap" }}>
+          Error: {this.state.error.message}
+        </div>
+      );
+    }
+    return this.props.children;
+  }
 }
 
 export default function App() {
@@ -62,14 +75,16 @@ export default function App() {
   }
 
   return (
-    <HashRouter>
-      <div className="app">
-        <Routes>
-          <Route path="/" element={<HomePage user={user} apiUrl={API_URL} />} />
-          <Route path="/moments" element={<MomentsPage user={user} apiUrl={API_URL} />} />
-          <Route path="/settings" element={<SettingsPage user={user} apiUrl={API_URL} />} />
-        </Routes>
-      </div>
-    </HashRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <div className="app">
+          <Routes>
+            <Route path="/" element={<HomePage user={user} apiUrl={API_URL} />} />
+            <Route path="/moments" element={<MomentsPage user={user} apiUrl={API_URL} />} />
+            <Route path="/settings" element={<SettingsPage user={user} apiUrl={API_URL} />} />
+          </Routes>
+        </div>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
