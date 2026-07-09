@@ -475,3 +475,35 @@
   font-size: 14px;
   animation: popIn 0.4s ease;
 }
+
+/* Sticker Picker */
+.sticker-row {
+  margin-bottom: 12px;
+}
+
+.sticker-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.sticker-btn {
+  border: none;
+  background: transparent;
+  font-size: 24px;
+  padding: 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  line-height: 1;
+}
+
+.sticker-btn:hover {
+  background: var(--primary-light);
+}
+
+.sticker-btn-active {
+  background: var(--primary);
+  transform: scale(1.2);
+}

@@ -6,6 +6,7 @@ import settingsRouter from "./routes/settings.js";
 import countdownRouter from "./routes/countdown.js";
 import missRouter from "./routes/miss.js";
 import momentsRouter from "./routes/moments.js";
+import stickersRouter from "./routes/stickers.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -19,6 +20,7 @@ app.use("/api/settings", settingsRouter);
 app.use("/api/countdown", countdownRouter);
 app.use("/api/miss", missRouter);
 app.use("/api/moments", momentsRouter);
+app.use("/api/stickers", stickersRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

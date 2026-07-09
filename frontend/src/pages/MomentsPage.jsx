@@ -2,6 +2,12 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { apiFetch } from "../utils/api.js";
 
+const STICKER_EMOJIS = [
+  "❤️", "💕", "💋", "🤗", "🥺", "✨", "🌸", "🔥",
+  "🌙", "☀️", "🦋", "🌈", "💫", "🧸", "🎀", "💐",
+  "🍓", "🍰", "☕", "🎵", "🫶", "🫂", "😘", "🥰",
+];
+
 export default function MomentsPage({ user, apiUrl }) {
   const location = useLocation();
   const [moments, setMoments] = useState([]);
@@ -9,6 +15,7 @@ export default function MomentsPage({ user, apiUrl }) {
   const [showAdd, setShowAdd] = useState(false);
   const [newText, setNewText] = useState("");
   const [photoPreview, setPhotoPreview] = useState(null);
+  const [selectedSticker, setSelectedSticker] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
   const fetchMoments = async () => {
@@ -27,20 +34,24 @@ export default function MomentsPage({ user, apiUrl }) {
   }, []);
 
   const handleSubmit = async () => {
-    if (!newText.trim() && !photoPreview) return;
+    if (!newText.trim() && !photoPreview && !selectedSticker) return;
     if (submitting) return;
     setSubmitting(true);
 
     try {
+      const text = selectedSticker
+        ? `${selectedSticker} ${newText}`.trim()
+        : newText;
       await apiFetch(apiUrl, "/api/moments", {
         method: "POST",
         body: JSON.stringify({
-          text: newText,
+          text,
           photoBase64: photoPreview,
         }),
       });
       setNewText("");
       setPhotoPreview(null);
+      setSelectedSticker(null);
       setShowAdd(false);
       fetchMoments();
     } catch (e) {
@@ -135,6 +146,21 @@ export default function MomentsPage({ user, apiUrl }) {
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-title">Новый момент</div>
 
+            <div className="sticker-row">
+              <span className="card-title" style={{marginBottom: 0}}>Стикер</span>
+              <div className="sticker-grid">
+                {STICKER_EMOJIS.map((s) => (
+                  <button
+                    key={s}
+                    className={`sticker-btn ${selectedSticker === s ? "sticker-btn-active" : ""}`}
+                    onClick={() => setSelectedSticker(selectedSticker === s ? null : s)}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {!photoPreview ? (
               <label className="photo-upload-area">
                 📷 Нажмите, чтобы добавить фото
@@ -167,8 +193,8 @@ export default function MomentsPage({ user, apiUrl }) {
               <button className="btn-cancel" onClick={() => setShowAdd(false)}>
                 Отмена
               </button>
-              <button className="btn-confirm" onClick={handleSubmit}>
-                Отправить
+              <button className="btn-confirm" onClick={handleSubmit} disabled={submitting}>
+                {submitting ? "..." : "Отправить"}
               </button>
             </div>
           </div>
