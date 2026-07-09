@@ -8,41 +8,7 @@ import "./App.css";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 export default function App() {
-  const [user, setUser] = useState(null);
-  const [debug, setDebug] = useState("starting");
-
-  useEffect(() => {
-    try {
-      const tg = window.Telegram?.WebApp;
-      if (!tg) {
-        setDebug("no Telegram WebApp found");
-        return;
-      }
-      setDebug("Telegram found, ready=" + tg.initDataUnsafe?.user?.id);
-      tg.ready();
-      tg.expand();
-      setUser(tg.initDataUnsafe?.user || null);
-      setDebug("user=" + JSON.stringify(tg.initDataUnsafe?.user));
-    } catch (e) {
-      setDebug("error: " + e.message);
-    }
-  }, []);
-
-  if (debug.includes("error") || debug.includes("no Telegram")) {
-    return (
-      <div style={{ padding: 20, fontFamily: "monospace", whiteSpace: "pre-wrap" }}>
-        Debug: {debug}
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div style={{ padding: 20, fontFamily: "monospace", whiteSpace: "pre-wrap" }}>
-        Debug: {debug}
-      </div>
-    );
-  }
+  const [user, setUser] = useState({ id: "test", first_name: "Тест" });
 
   return (
     <HashRouter>
