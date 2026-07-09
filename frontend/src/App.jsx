@@ -7,42 +7,39 @@ import "./App.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
-function getTelegramUser() {
-  try {
-    if (window.Telegram && window.Telegram.WebApp) {
-      const tg = window.Telegram.WebApp;
-      tg.ready();
-      tg.expand();
-      return tg.initDataUnsafe?.user || null;
-    }
-  } catch (e) {
-    console.error("Telegram SDK error:", e);
-  }
-  return null;
-}
-
 export default function App() {
   const [user, setUser] = useState(null);
-  const [ready, setReady] = useState(false);
+  const [debug, setDebug] = useState("starting");
 
   useEffect(() => {
-    const tgUser = getTelegramUser();
-    setUser(tgUser);
-    setReady(true);
+    try {
+      const tg = window.Telegram?.WebApp;
+      if (!tg) {
+        setDebug("no Telegram WebApp found");
+        return;
+      }
+      setDebug("Telegram found, ready=" + tg.initDataUnsafe?.user?.id);
+      tg.ready();
+      tg.expand();
+      setUser(tg.initDataUnsafe?.user || null);
+      setDebug("user=" + JSON.stringify(tg.initDataUnsafe?.user));
+    } catch (e) {
+      setDebug("error: " + e.message);
+    }
   }, []);
 
-  if (!ready) {
+  if (debug.includes("error") || debug.includes("no Telegram")) {
     return (
-      <div className="loading">
-        <div className="loading-heart">🤍</div>
+      <div style={{ padding: 20, fontFamily: "monospace", whiteSpace: "pre-wrap" }}>
+        Debug: {debug}
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="loading">
-        <p>Откройте это приложение через Telegram</p>
+      <div style={{ padding: 20, fontFamily: "monospace", whiteSpace: "pre-wrap" }}>
+        Debug: {debug}
       </div>
     );
   }
