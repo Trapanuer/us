@@ -7,30 +7,28 @@ import "./App.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
-function parseInitData() {
+function getTelegramUser() {
+  try {
+    if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
+      return window.Telegram.WebApp.initDataUnsafe.user;
+    }
+  } catch (e) {}
+
   try {
     const hash = window.location.hash || "";
     const match = hash.match(/tgWebAppData=([^&]*)/);
     if (match) {
       const decoded = decodeURIComponent(match[1]);
-      const data = JSON.parse(decoded);
-      return data.user || null;
+      const params = new URLSearchParams(decoded);
+      const userStr = params.get("user");
+      if (userStr) {
+        return JSON.parse(userStr);
+      }
     }
-  } catch (e) {}
+  } catch (e) {
+    console.error("Parse error:", e);
+  }
   return null;
-}
-
-function getTGUser() {
-  try {
-    if (window.Telegram && window.Telegram.WebApp) {
-      const tg = window.Telegram.WebApp;
-      tg.ready();
-      tg.expand();
-      const u = tg.initDataUnsafe?.user;
-      if (u) return u;
-    }
-  } catch (e) {}
-  return parseInitData();
 }
 
 export default function App() {
@@ -38,20 +36,27 @@ export default function App() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    setUser(getTGUser());
+    const tgUser = getTelegramUser();
+    setUser(tgUser);
     setReady(true);
+    try {
+      window.Telegram?.WebApp?.ready();
+      window.Telegram?.WebApp?.expand();
+    } catch (e) {}
   }, []);
 
-  if (!ready) return <div className="loading"><div className="loading-heart">🤍</div></div>;
+  if (!ready) {
+    return (
+      <div className="loading">
+        <div className="loading-heart">🤍</div>
+      </div>
+    );
+  }
 
   if (!user) {
     return (
       <div className="loading">
         <p>Откройте это приложение через Telegram</p>
-        <p style={{fontSize:11, marginTop:12, opacity:0.4, wordBreak:'break-all'}}>
-          hash: {window.location.hash || '(пусто)'}<br/>
-          Telegram: {typeof window.Telegram}
-        </p>
       </div>
     );
   }
