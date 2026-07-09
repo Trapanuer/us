@@ -3,7 +3,7 @@ import { db } from "../firebase.js";
 import { authMiddleware } from "../middleware/auth.js";
 
 const router = Router();
-const SETTINGS_DOC = "settings/global";
+const SETTINGS_DOC = "global";
 
 // Get settings (meeting date, etc.)
 router.get("/", authMiddleware, async (req, res) => {

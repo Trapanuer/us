@@ -7,7 +7,7 @@ const router = Router();
 // Get countdown data
 router.get("/", authMiddleware, async (req, res) => {
   try {
-    const doc = await db.collection("settings").doc("settings/global").get();
+    const doc = await db.collection("settings").doc("global").get();
     if (!doc.exists || !doc.data().meetingDate) {
       return res.json({ meetingDate: null, daysLeft: null });
     }
