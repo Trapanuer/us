@@ -7,12 +7,30 @@ import "./App.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
-function getTG() {
+function parseInitData() {
   try {
-    return window.Telegram?.WebApp || null;
-  } catch (e) {
-    return null;
-  }
+    const hash = window.location.hash || "";
+    const match = hash.match(/tgWebAppData=([^&]*)/);
+    if (match) {
+      const decoded = decodeURIComponent(match[1]);
+      const data = JSON.parse(decoded);
+      return data.user || null;
+    }
+  } catch (e) {}
+  return null;
+}
+
+function getTGUser() {
+  try {
+    if (window.Telegram && window.Telegram.WebApp) {
+      const tg = window.Telegram.WebApp;
+      tg.ready();
+      tg.expand();
+      const u = tg.initDataUnsafe?.user;
+      if (u) return u;
+    }
+  } catch (e) {}
+  return parseInitData();
 }
 
 export default function App() {
@@ -20,15 +38,7 @@ export default function App() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const tg = getTG();
-    if (tg) {
-      try {
-        tg.ready();
-        tg.expand();
-      } catch (e) {}
-      const u = tg.initDataUnsafe?.user;
-      if (u) setUser(u);
-    }
+    setUser(getTGUser());
     setReady(true);
   }, []);
 
@@ -38,7 +48,10 @@ export default function App() {
     return (
       <div className="loading">
         <p>Откройте это приложение через Telegram</p>
-        <p style={{fontSize:12, marginTop:8, opacity:0.5}}>Debug: Telegram={!!getTG()}, user={JSON.stringify(getTG()?.initDataUnsafe?.user)}</p>
+        <p style={{fontSize:11, marginTop:12, opacity:0.4, wordBreak:'break-all'}}>
+          hash: {window.location.hash || '(пусто)'}<br/>
+          Telegram: {typeof window.Telegram}
+        </p>
       </div>
     );
   }

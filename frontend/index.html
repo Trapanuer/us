@@ -2,51 +2,22 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Мы</title>
     <style>
-      body { font-family: sans-serif; padding: 20px; background: #faf5f0; }
-      .debug { background: #fff; padding: 16px; border-radius: 12px; margin: 10px 0; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: var(--tg-theme-bg-color, #faf5f0);
+        color: var(--tg-theme-text-color, #2c2c2c);
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+      }
+      #root { min-height: 100vh; }
     </style>
   </head>
   <body>
-    <div id="root">
-      <div class="debug">
-        <h2>Тест загрузки</h2>
-        <p>Если вы видите это — HTML загружается</p>
-        <p id="telegram-status">Проверяю Telegram SDK...</p>
-        <p id="user-info"></p>
-      </div>
-    </div>
-    <script>
-      var tgStatus = document.getElementById('telegram-status');
-      var userInfo = document.getElementById('user-info');
-      
-      try {
-        if (window.Telegram && window.Telegram.WebApp) {
-          var tg = window.Telegram.WebApp;
-          tgStatus.textContent = 'Telegram SDK: НАЙДЕН';
-          tgStatus.style.color = 'green';
-          
-          tg.ready();
-          tg.expand();
-          
-          var user = tg.initDataUnsafe && tg.initDataUnsafe.user;
-          if (user) {
-            userInfo.textContent = 'User: ' + user.first_name + ' (ID: ' + user.id + ')';
-            userInfo.style.color = 'green';
-          } else {
-            userInfo.textContent = 'User: не найден (initDataUnsafe.user = null)';
-            userInfo.style.color = 'orange';
-          }
-        } else {
-          tgStatus.textContent = 'Telegram SDK: НЕ НАЙДЕН (window.Telegram = ' + typeof window.Telegram + ')';
-          tgStatus.style.color = 'red';
-        }
-      } catch(e) {
-        tgStatus.textContent = 'Ошибка: ' + e.message;
-        tgStatus.style.color = 'red';
-      }
-    </script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
