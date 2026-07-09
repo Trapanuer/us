@@ -2,12 +2,6 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { apiFetch } from "../utils/api.js";
 
-const STICKER_EMOJIS = [
-  "❤️", "💕", "💋", "🤗", "🥺", "✨", "🌸", "🔥",
-  "🌙", "☀️", "🦋", "🌈", "💫", "🧸", "🎀", "💐",
-  "🍓", "🍰", "☕", "🎵", "🫶", "🫂", "😘", "🥰",
-];
-
 export default function MomentsPage({ user, apiUrl }) {
   const location = useLocation();
   const [moments, setMoments] = useState([]);
@@ -17,6 +11,13 @@ export default function MomentsPage({ user, apiUrl }) {
   const [photoPreview, setPhotoPreview] = useState(null);
   const [selectedSticker, setSelectedSticker] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [stickers, setStickers] = useState([]);
+
+  useEffect(() => {
+    apiFetch(apiUrl, "/api/stickers")
+      .then((data) => setStickers(data.stickers || []))
+      .catch(() => {});
+  }, [apiUrl]);
 
   const fetchMoments = async () => {
     try {
@@ -34,18 +35,17 @@ export default function MomentsPage({ user, apiUrl }) {
   }, []);
 
   const handleSubmit = async () => {
-    if (!newText.trim() && !photoPreview && !selectedSticker) return;
+    if (!newText.trim() && !photoPreview && selectedSticker === null) return;
     if (submitting) return;
     setSubmitting(true);
 
     try {
-      const text = selectedSticker
-        ? `${selectedSticker} ${newText}`.trim()
-        : newText;
+      const stickerText = selectedSticker !== null ? `[sticker:${selectedSticker}]` : "";
+      const text = `${stickerText} ${newText}`.trim();
       await apiFetch(apiUrl, "/api/moments", {
         method: "POST",
         body: JSON.stringify({
-          text,
+          text: text || null,
           photoBase64: photoPreview,
         }),
       });
@@ -85,6 +85,26 @@ export default function MomentsPage({ user, apiUrl }) {
     acc[day].push(m);
     return acc;
   }, {});
+
+  const renderStickerText = (text) => {
+    if (!text) return null;
+    const parts = text.split(/(\[sticker:\d+\])/g);
+    return parts.map((part, i) => {
+      const match = part.match(/\[sticker:(\d+)\]/);
+      if (match) {
+        const idx = parseInt(match[1]);
+        return (
+          <img
+            key={i}
+            src={`${apiUrl}/api/stickers/image/${idx}`}
+            alt="sticker"
+            className="moment-sticker"
+          />
+        );
+      }
+      return <span key={i}>{part}</span>;
+    });
+  };
 
   return (
     <div>
@@ -130,7 +150,7 @@ export default function MomentsPage({ user, apiUrl }) {
                     </span>
                     <span className="moment-time">{formatTime(m.createdAt)}</span>
                   </div>
-                  {m.text && <div className="moment-text">{m.text}</div>}
+                  {m.text && <div className="moment-text">{renderStickerText(m.text)}</div>}
                   {m.photoUrl && (
                     <img src={m.photoUrl} alt="" className="moment-photo" />
                   )}
@@ -146,20 +166,25 @@ export default function MomentsPage({ user, apiUrl }) {
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-title">Новый момент</div>
 
-            <div className="sticker-row">
-              <span className="card-title" style={{marginBottom: 0}}>Стикер</span>
-              <div className="sticker-grid">
-                {STICKER_EMOJIS.map((s) => (
-                  <button
-                    key={s}
-                    className={`sticker-btn ${selectedSticker === s ? "sticker-btn-active" : ""}`}
-                    onClick={() => setSelectedSticker(selectedSticker === s ? null : s)}
-                  >
-                    {s}
-                  </button>
-                ))}
+            {stickers.length > 0 && (
+              <div className="sticker-row">
+                <div className="sticker-grid">
+                  {stickers.map((s, i) => (
+                    <button
+                      key={i}
+                      className={`sticker-btn ${selectedSticker === i ? "sticker-btn-active" : ""}`}
+                      onClick={() => setSelectedSticker(selectedSticker === i ? null : i)}
+                    >
+                      <img
+                        src={`${apiUrl}/api/stickers/image/${i}`}
+                        alt={s.emoji}
+                        className="sticker-img"
+                      />
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {!photoPreview ? (
               <label className="photo-upload-area">
