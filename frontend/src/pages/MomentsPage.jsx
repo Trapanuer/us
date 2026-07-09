@@ -12,6 +12,7 @@ export default function MomentsPage({ user, apiUrl }) {
   const [selectedSticker, setSelectedSticker] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [stickers, setStickers] = useState([]);
+  const [replyTo, setReplyTo] = useState(null);
 
   useEffect(() => {
     apiFetch(apiUrl, "/api/stickers")
@@ -47,11 +48,13 @@ export default function MomentsPage({ user, apiUrl }) {
         body: JSON.stringify({
           text: text || null,
           photoBase64: photoPreview,
+          replyTo: replyTo,
         }),
       });
       setNewText("");
       setPhotoPreview(null);
       setSelectedSticker(null);
+      setReplyTo(null);
       setShowAdd(false);
       fetchMoments();
     } catch (e) {
@@ -79,13 +82,6 @@ export default function MomentsPage({ user, apiUrl }) {
     return d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
   };
 
-  const grouped = (moments || []).reduce((acc, m) => {
-    const day = m.createdAt?.split("T")[0];
-    if (!acc[day]) acc[day] = [];
-    acc[day].push(m);
-    return acc;
-  }, {});
-
   const renderStickerText = (text) => {
     if (!text) return null;
     const parts = text.split(/(\[sticker:\d+\])/g);
@@ -106,6 +102,22 @@ export default function MomentsPage({ user, apiUrl }) {
     });
   };
 
+  const handleReply = (momentId) => {
+    setReplyTo(momentId);
+    setShowAdd(true);
+  };
+
+  const replyToMoment = replyTo ? moments.find((m) => m.id === replyTo) : null;
+
+  const topLevel = moments.filter((m) => !m.replyTo);
+  const repliesMap = {};
+  moments.forEach((m) => {
+    if (m.replyTo) {
+      if (!repliesMap[m.replyTo]) repliesMap[m.replyTo] = [];
+      repliesMap[m.replyTo].push(m);
+    }
+  });
+
   return (
     <div>
       <div className="nav">
@@ -123,37 +135,69 @@ export default function MomentsPage({ user, apiUrl }) {
       <div className="card">
         <div className="card-title">Лента моментов</div>
 
-        <button className="add-moment-btn" onClick={() => setShowAdd(true)}>
+        <button className="add-moment-btn" onClick={() => { setReplyTo(null); setShowAdd(true); }}>
           + Добавить момент
         </button>
 
         {loading ? (
           <div className="empty-state">Загрузка...</div>
-        ) : moments.length === 0 ? (
+        ) : topLevel.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-emoji">📷</div>
             <p>Пока нет моментов</p>
             <p>Добавьте первый!</p>
           </div>
         ) : (
-          Object.entries(grouped).map(([day, items]) => (
+          Object.entries(
+            topLevel.reduce((acc, m) => {
+              const day = m.createdAt?.split("T")[0];
+              if (!acc[day]) acc[day] = [];
+              acc[day].push(m);
+              return acc;
+            }, {})
+          ).map(([day, items]) => (
             <div key={day}>
               <div className="day-divider">{formatDate(items[0].createdAt)}</div>
               {items.map((m) => (
-                <div key={m.id} className="moment-card">
-                  <div className="moment-header">
-                    <div className="moment-avatar">
-                      {m.author === user.id?.toString() ? "👤" : "💕"}
+                <div key={m.id}>
+                  <div className="moment-card">
+                    <div className="moment-header">
+                      <div className="moment-avatar">
+                        {m.author === user.id?.toString() ? "👤" : "💕"}
+                      </div>
+                      <span className="moment-author">
+                        {m.author === user.id?.toString() ? "Я" : "Партнёр"}
+                      </span>
+                      <span className="moment-time">{formatTime(m.createdAt)}</span>
                     </div>
-                    <span className="moment-author">
-                      {m.author === user.id?.toString() ? "Я" : "Партнёр"}
-                    </span>
-                    <span className="moment-time">{formatTime(m.createdAt)}</span>
+                    {m.text && <div className="moment-text">{renderStickerText(m.text)}</div>}
+                    {m.photoUrl && (
+                      <img src={m.photoUrl} alt="" className="moment-photo" />
+                    )}
+                    <div className="moment-actions">
+                      <button className="moment-reply-btn" onClick={() => handleReply(m.id)}>
+                        💬 Ответить
+                      </button>
+                    </div>
                   </div>
-                  {m.text && <div className="moment-text">{renderStickerText(m.text)}</div>}
-                  {m.photoUrl && (
-                    <img src={m.photoUrl} alt="" className="moment-photo" />
-                  )}
+
+                  {repliesMap[m.id] && repliesMap[m.id].map((reply) => (
+                    <div key={reply.id} className="moment-card moment-reply">
+                      <div className="moment-header">
+                        <div className="moment-avatar moment-avatar-small">
+                          {reply.author === user.id?.toString() ? "👤" : "💕"}
+                        </div>
+                        <span className="moment-author">
+                          {reply.author === user.id?.toString() ? "Я" : "Партнёр"}
+                        </span>
+                        <span className="moment-time">{formatTime(reply.createdAt)}</span>
+                      </div>
+                      {reply.text && <div className="moment-text">{renderStickerText(reply.text)}</div>}
+                      {reply.photoUrl && (
+                        <img src={reply.photoUrl} alt="" className="moment-photo" />
+                      )}
+                    </div>
+                  ))}
                 </div>
               ))}
             </div>
@@ -162,9 +206,23 @@ export default function MomentsPage({ user, apiUrl }) {
       </div>
 
       {showAdd && (
-        <div className="modal-overlay" onClick={() => setShowAdd(false)}>
+        <div className="modal-overlay" onClick={() => { setShowAdd(false); setReplyTo(null); }}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-title">Новый момент</div>
+            <div className="modal-title">
+              {replyToMoment ? "Ответ на момент" : "Новый момент"}
+            </div>
+
+            {replyToMoment && (
+              <div className="reply-preview">
+                <div className="reply-preview-author">
+                  {replyToMoment.author === user.id?.toString() ? "Я" : "Партнёр"}:
+                </div>
+                <div className="reply-preview-text">
+                  {replyToMoment.text?.substring(0, 80)}
+                  {(replyToMoment.text?.length || 0) > 80 ? "..." : ""}
+                </div>
+              </div>
+            )}
 
             {stickers.length > 0 && (
               <div className="sticker-row">
@@ -215,7 +273,7 @@ export default function MomentsPage({ user, apiUrl }) {
             />
 
             <div className="modal-actions">
-              <button className="btn-cancel" onClick={() => setShowAdd(false)}>
+              <button className="btn-cancel" onClick={() => { setShowAdd(false); setReplyTo(null); }}>
                 Отмена
               </button>
               <button className="btn-confirm" onClick={handleSubmit} disabled={submitting}>

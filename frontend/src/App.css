@@ -520,3 +520,61 @@
   object-fit: contain;
   margin: 4px 0;
 }
+
+/* Moment Actions */
+.moment-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.moment-reply-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: all 0.15s;
+}
+
+.moment-reply-btn:hover {
+  background: var(--primary-light);
+  color: var(--accent);
+}
+
+/* Replies */
+.moment-reply {
+  margin-left: 24px;
+  border-left: 3px solid var(--primary-light);
+}
+
+.moment-avatar-small {
+  width: 24px;
+  height: 24px;
+  font-size: 11px;
+}
+
+/* Reply Preview in Modal */
+.reply-preview {
+  background: var(--primary-light);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.reply-preview-author {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.reply-preview-text {
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
