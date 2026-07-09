@@ -2,6 +2,7 @@ import { useState, useEffect, Component } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage.jsx";
 import MomentsPage from "./pages/MomentsPage.jsx";
+import ChecklistPage from "./pages/ChecklistPage.jsx";
 import SettingsPage from "./pages/SettingsPage.jsx";
 import "./App.css";
 
@@ -82,6 +83,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<HomePage user={user} apiUrl={API_URL} />} />
             <Route path="/moments" element={<MomentsPage user={user} apiUrl={API_URL} />} />
+            <Route path="/checklist" element={<ChecklistPage user={user} apiUrl={API_URL} />} />
             <Route path="/settings" element={<SettingsPage user={user} apiUrl={API_URL} />} />
           </Routes>
         </div>

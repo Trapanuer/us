@@ -654,3 +654,140 @@
   color: var(--accent);
   font-weight: 600;
 }
+
+/* Checklist */
+.checklist-add {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.checklist-input {
+  flex: 1;
+  padding: 12px 14px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  font-size: 15px;
+  background: var(--card-bg);
+  color: var(--text);
+  outline: none;
+}
+
+.checklist-input:focus {
+  border-color: var(--primary);
+}
+
+.checklist-add-btn {
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 12px;
+  background: var(--primary);
+  color: white;
+  font-size: 22px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.checklist-add-btn:active {
+  transform: scale(0.95);
+}
+
+.checklist-section {
+  margin-bottom: 16px;
+}
+
+.checklist-section-title {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.checklist-item:last-child {
+  border-bottom: none;
+}
+
+.checklist-item-done {
+  opacity: 0.5;
+}
+
+.checklist-checkbox {
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.checklist-checkbox:hover {
+  border-color: var(--primary);
+}
+
+.checklist-checkbox-checked {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: white;
+}
+
+.checklist-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.checklist-item-text {
+  display: block;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.checklist-item-done .checklist-item-text {
+  text-decoration: line-through;
+}
+
+.checklist-item-author {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.checklist-delete {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.checklist-item:hover .checklist-delete {
+  opacity: 1;
+}
+
+.checklist-delete:hover {
+  color: #e74c3c;
+}
