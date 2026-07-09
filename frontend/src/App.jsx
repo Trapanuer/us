@@ -7,8 +7,41 @@ import "./App.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
+function getTG() {
+  try {
+    return window.Telegram?.WebApp || null;
+  } catch (e) {
+    return null;
+  }
+}
+
 export default function App() {
-  const [user, setUser] = useState({ id: "test", first_name: "Тест" });
+  const [user, setUser] = useState(null);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const tg = getTG();
+    if (tg) {
+      try {
+        tg.ready();
+        tg.expand();
+      } catch (e) {}
+      const u = tg.initDataUnsafe?.user;
+      if (u) setUser(u);
+    }
+    setReady(true);
+  }, []);
+
+  if (!ready) return <div className="loading"><div className="loading-heart">🤍</div></div>;
+
+  if (!user) {
+    return (
+      <div className="loading">
+        <p>Откройте это приложение через Telegram</p>
+        <p style={{fontSize:12, marginTop:8, opacity:0.5}}>Debug: Telegram={!!getTG()}, user={JSON.stringify(getTG()?.initDataUnsafe?.user)}</p>
+      </div>
+    );
+  }
 
   return (
     <HashRouter>
