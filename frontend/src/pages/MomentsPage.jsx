@@ -9,6 +9,7 @@ export default function MomentsPage({ user, apiUrl }) {
   const [showAdd, setShowAdd] = useState(false);
   const [newText, setNewText] = useState("");
   const [photoPreview, setPhotoPreview] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const fetchMoments = async () => {
     try {
@@ -27,6 +28,8 @@ export default function MomentsPage({ user, apiUrl }) {
 
   const handleSubmit = async () => {
     if (!newText.trim() && !photoPreview) return;
+    if (submitting) return;
+    setSubmitting(true);
 
     try {
       await apiFetch(apiUrl, "/api/moments", {
@@ -42,6 +45,8 @@ export default function MomentsPage({ user, apiUrl }) {
       fetchMoments();
     } catch (e) {
       console.error(e);
+    } finally {
+      setSubmitting(false);
     }
   };
 
