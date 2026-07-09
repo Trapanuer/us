@@ -578,3 +578,79 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Category Tabs */
+.category-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.category-tab {
+  flex-shrink: 0;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 14px;
+  background: var(--card-bg);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: var(--shadow);
+}
+
+.category-tab:hover {
+  background: var(--primary-light);
+}
+
+.category-tab-active {
+  background: var(--primary);
+  color: white;
+}
+
+/* Category Badge on Moment */
+.moment-category-badge {
+  font-size: 11px;
+  background: var(--primary-light);
+  color: var(--accent);
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: auto;
+}
+
+/* Category Picker in Modal */
+.category-picker {
+  margin-bottom: 12px;
+}
+
+.category-picker-grid {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.category-picker-btn {
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 14px;
+  background: var(--card-bg);
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.category-picker-btn:hover {
+  border-color: var(--primary);
+}
+
+.category-picker-btn-active {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  color: var(--accent);
+  font-weight: 600;
+}

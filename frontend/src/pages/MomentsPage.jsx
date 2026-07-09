@@ -2,6 +2,14 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { apiFetch } from "../utils/api.js";
 
+const CATEGORIES = [
+  { id: null, emoji: "🌐", name: "Все" },
+  { id: "photo", emoji: "📸", name: "Фото дня" },
+  { id: "food", emoji: "🍽️", name: "Еда" },
+  { id: "funny", emoji: "😂", name: "Весёлое" },
+  { id: "plans", emoji: "📝", name: "Планы" },
+];
+
 export default function MomentsPage({ user, apiUrl }) {
   const location = useLocation();
   const [moments, setMoments] = useState([]);
@@ -13,6 +21,8 @@ export default function MomentsPage({ user, apiUrl }) {
   const [submitting, setSubmitting] = useState(false);
   const [stickers, setStickers] = useState([]);
   const [replyTo, setReplyTo] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [filterCategory, setFilterCategory] = useState(null);
 
   useEffect(() => {
     apiFetch(apiUrl, "/api/stickers")
@@ -22,7 +32,10 @@ export default function MomentsPage({ user, apiUrl }) {
 
   const fetchMoments = async () => {
     try {
-      const data = await apiFetch(apiUrl, "/api/moments");
+      const url = filterCategory
+        ? `/api/moments?category=${filterCategory}`
+        : "/api/moments";
+      const data = await apiFetch(apiUrl, url);
       setMoments(Array.isArray(data) ? data : []);
     } catch (e) {
       console.error(e);
@@ -33,7 +46,7 @@ export default function MomentsPage({ user, apiUrl }) {
 
   useEffect(() => {
     fetchMoments();
-  }, []);
+  }, [filterCategory]);
 
   const handleSubmit = async () => {
     if (!newText.trim() && !photoPreview && selectedSticker === null) return;
@@ -49,11 +62,13 @@ export default function MomentsPage({ user, apiUrl }) {
           text: text || null,
           photoBase64: photoPreview,
           replyTo: replyTo,
+          category: selectedCategory,
         }),
       });
       setNewText("");
       setPhotoPreview(null);
       setSelectedSticker(null);
+      setSelectedCategory(null);
       setReplyTo(null);
       setShowAdd(false);
       fetchMoments();
@@ -109,6 +124,8 @@ export default function MomentsPage({ user, apiUrl }) {
 
   const replyToMoment = replyTo ? moments.find((m) => m.id === replyTo) : null;
 
+  const getCategoryById = (id) => CATEGORIES.find((c) => c.id === id);
+
   const topLevel = moments.filter((m) => !m.replyTo);
   const repliesMap = {};
   moments.forEach((m) => {
@@ -130,6 +147,18 @@ export default function MomentsPage({ user, apiUrl }) {
         <Link to="/settings" className={`nav-link ${location.pathname === "/settings" ? "active" : ""}`}>
           ⚙️ Настройки
         </Link>
+      </div>
+
+      <div className="category-tabs">
+        {CATEGORIES.map((cat) => (
+          <button
+            key={cat.id || "all"}
+            className={`category-tab ${filterCategory === cat.id ? "category-tab-active" : ""}`}
+            onClick={() => setFilterCategory(cat.id)}
+          >
+            {cat.emoji} {cat.name}
+          </button>
+        ))}
       </div>
 
       <div className="card">
@@ -158,7 +187,9 @@ export default function MomentsPage({ user, apiUrl }) {
           ).map(([day, items]) => (
             <div key={day}>
               <div className="day-divider">{formatDate(items[0].createdAt)}</div>
-              {items.map((m) => (
+              {items.map((m) => {
+                const cat = getCategoryById(m.category);
+                return (
                 <div key={m.id}>
                   <div className="moment-card">
                     <div className="moment-header">
@@ -168,6 +199,11 @@ export default function MomentsPage({ user, apiUrl }) {
                       <span className="moment-author">
                         {m.author === user.id?.toString() ? "Я" : "Партнёр"}
                       </span>
+                      {cat && (
+                        <span className="moment-category-badge">
+                          {cat.emoji} {cat.name}
+                        </span>
+                      )}
                       <span className="moment-time">{formatTime(m.createdAt)}</span>
                     </div>
                     {m.text && <div className="moment-text">{renderStickerText(m.text)}</div>}
@@ -199,7 +235,8 @@ export default function MomentsPage({ user, apiUrl }) {
                     </div>
                   ))}
                 </div>
-              ))}
+                );
+              })}
             </div>
           ))
         )}
@@ -220,6 +257,23 @@ export default function MomentsPage({ user, apiUrl }) {
                 <div className="reply-preview-text">
                   {replyToMoment.text?.substring(0, 80)}
                   {(replyToMoment.text?.length || 0) > 80 ? "..." : ""}
+                </div>
+              </div>
+            )}
+
+            {!replyToMoment && (
+              <div className="category-picker">
+                <span className="card-title" style={{marginBottom: 0}}>Категория</span>
+                <div className="category-picker-grid">
+                  {CATEGORIES.filter((c) => c.id !== null).map((cat) => (
+                    <button
+                      key={cat.id}
+                      className={`category-picker-btn ${selectedCategory === cat.id ? "category-picker-btn-active" : ""}`}
+                      onClick={() => setSelectedCategory(selectedCategory === cat.id ? null : cat.id)}
+                    >
+                      {cat.emoji} {cat.name}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}

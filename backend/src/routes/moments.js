@@ -4,10 +4,22 @@ import { authMiddleware } from "../middleware/auth.js";
 
 const router = Router();
 
-// Create moment (with optional replyTo)
+const CATEGORIES = [
+  { id: "photo", emoji: "📸", name: "Фото дня" },
+  { id: "food", emoji: "🍽️", name: "Еда" },
+  { id: "funny", emoji: "😂", name: "Весёлое" },
+  { id: "plans", emoji: "📝", name: "Планы" },
+];
+
+// Get categories list
+router.get("/categories", authMiddleware, (req, res) => {
+  res.json(CATEGORIES);
+});
+
+// Create moment (with optional category and replyTo)
 router.post("/", authMiddleware, async (req, res) => {
   try {
-    const { text, photoBase64, voiceText, replyTo } = req.body;
+    const { text, photoBase64, voiceText, replyTo, category } = req.body;
 
     if (!text && !photoBase64 && !voiceText) {
       return res.status(400).json({ error: "Empty moment" });
@@ -19,6 +31,7 @@ router.post("/", authMiddleware, async (req, res) => {
       photoUrl: photoBase64 || null,
       voiceText: voiceText || null,
       replyTo: replyTo || null,
+      category: category || null,
       createdAt: new Date().toISOString(),
     };
 
@@ -33,10 +46,14 @@ router.post("/", authMiddleware, async (req, res) => {
 // Get all moments (ordered by date)
 router.get("/", authMiddleware, async (req, res) => {
   try {
-    const snapshot = await db.collection("moments")
-      .orderBy("createdAt", "desc")
-      .limit(200)
-      .get();
+    const { category } = req.query;
+    let query = db.collection("moments").orderBy("createdAt", "desc");
+
+    if (category) {
+      query = query.where("category", "==", category);
+    }
+
+    const snapshot = await query.limit(200).get();
 
     const moments = [];
     snapshot.forEach((doc) => {
