@@ -411,6 +411,7 @@
   background: var(--card-bg);
   color: var(--text);
   outline: none;
+  margin-top: 8px;
 }
 
 .modal textarea:focus {
@@ -450,6 +451,7 @@
   text-align: center;
   cursor: pointer;
   color: var(--text-muted);
+  margin-top: 12px;
   margin-bottom: 12px;
   transition: all 0.2s;
 }
@@ -623,25 +625,26 @@
 
 /* Category Picker in Modal */
 .category-picker {
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .category-picker-grid {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   flex-wrap: wrap;
-  margin-top: 8px;
+  margin-top: 10px;
 }
 
 .category-picker-btn {
   border: 2px solid var(--border);
-  border-radius: 12px;
-  padding: 8px 14px;
+  border-radius: 20px;
+  padding: 10px 16px;
   background: var(--card-bg);
   color: var(--text);
-  font-size: 13px;
+  font-size: 14px;
   cursor: pointer;
   transition: all 0.15s;
+  white-space: nowrap;
 }
 
 .category-picker-btn:hover {
