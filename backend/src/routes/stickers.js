@@ -4,52 +4,82 @@ import { authMiddleware } from "../middleware/auth.js";
 const router = Router();
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
-const STICKER_SET_NAME = "Baby_chubby_Hippo";
+const STICKER_PACKS = [
+  { name: "Baby_chubby_Hippo", label: "Baby Hippo" },
+  { name: "baby_hippo_Nyasticks", label: "Nyasticks" },
+];
 
-let cachedStickers = null;
+let cachedPackData = null;
 let cacheTime = 0;
 
-async function fetchStickers() {
+async function fetchAllStickers() {
   const now = Date.now();
-  if (cachedStickers && now - cacheTime < 3600000) {
-    return cachedStickers;
+  if (cachedPackData && now - cacheTime < 3600000) {
+    return cachedPackData;
   }
 
   try {
-    const res = await fetch(
-      `https://api.telegram.org/bot${BOT_TOKEN}/getStickerSet?name=${STICKER_SET_NAME}`
-    );
-    const data = await res.json();
-    if (!data.ok) return [];
-
-    const stickers = [];
-    for (const s of data.result.stickers) {
-      const fileRes = await fetch(
-        `https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${s.file_id}`
+    const packs = [];
+    for (const pack of STICKER_PACKS) {
+      const res = await fetch(
+        `https://api.telegram.org/bot${BOT_TOKEN}/getStickerSet?name=${pack.name}`
       );
-      const fileData = await fileRes.json();
-      if (fileData.ok) {
-        stickers.push({
-          emoji: s.emoji,
-          file_path: fileData.result.file_path,
-        });
+      const data = await res.json();
+      if (!data.ok) {
+        packs.push({ label: pack.label, stickers: [] });
+        continue;
       }
+
+      const stickers = [];
+      for (const s of data.result.stickers) {
+        const fileRes = await fetch(
+          `https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${s.file_id}`
+        );
+        const fileData = await fileRes.json();
+        if (fileData.ok) {
+          stickers.push({
+            emoji: s.emoji,
+            file_path: fileData.result.file_path,
+          });
+        }
+      }
+      packs.push({ label: pack.label, stickers });
     }
 
-    cachedStickers = stickers;
+    cachedPackData = packs;
     cacheTime = now;
-    return stickers;
+    return packs;
   } catch (e) {
     console.error("Failed to fetch stickers:", e);
-    return cachedStickers || [];
+    return cachedPackData || [];
   }
 }
 
-// Get all stickers
+async function getFlatStickers() {
+  const packs = await fetchAllStickers();
+  const flat = [];
+  packs.forEach((pack, packIdx) => {
+    pack.stickers.forEach((s, i) => {
+      flat.push({ ...s, packIdx, localIndex: i });
+    });
+  });
+  return flat;
+}
+
+// Get all stickers grouped by pack
 router.get("/", authMiddleware, async (req, res) => {
   try {
-    const stickers = await fetchStickers();
-    res.json({ stickers });
+    const packs = await fetchAllStickers();
+    let offset = 0;
+    const result = packs.map((pack) => {
+      const stickers = pack.stickers.map((s, i) => ({
+        emoji: s.emoji,
+        index: offset + i,
+      }));
+      offset += pack.stickers.length;
+      return { label: pack.label, stickers };
+    });
+    res.json({ packs: result });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -58,14 +88,14 @@ router.get("/", authMiddleware, async (req, res) => {
 // Proxy sticker image (hides bot token from frontend)
 router.get("/image/:index", async (req, res) => {
   try {
-    const stickers = await fetchStickers();
+    const flat = await getFlatStickers();
     const idx = parseInt(req.params.index);
-    if (idx < 0 || idx >= stickers.length) {
+    if (idx < 0 || idx >= flat.length) {
       return res.status(404).json({ error: "Not found" });
     }
 
     const fileRes = await fetch(
-      `https://api.telegram.org/file/bot${BOT_TOKEN}/${stickers[idx].file_path}`
+      `https://api.telegram.org/file/bot${BOT_TOKEN}/${flat[idx].file_path}`
     );
 
     if (!fileRes.ok) {

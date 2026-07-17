@@ -19,14 +19,15 @@ export default function MomentsPage({ user, apiUrl }) {
   const [photoPreview, setPhotoPreview] = useState(null);
   const [selectedSticker, setSelectedSticker] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [stickers, setStickers] = useState([]);
+  const [stickerPacks, setStickerPacks] = useState([]);
+  const [activePack, setActivePack] = useState(0);
   const [replyTo, setReplyTo] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [filterCategory, setFilterCategory] = useState(null);
 
   useEffect(() => {
     apiFetch(apiUrl, "/api/stickers")
-      .then((data) => setStickers(data.stickers || []))
+      .then((data) => setStickerPacks(data.packs || []))
       .catch(() => {});
   }, [apiUrl]);
 
@@ -278,17 +279,30 @@ export default function MomentsPage({ user, apiUrl }) {
               </div>
             )}
 
-            {stickers.length > 0 && (
+            {stickerPacks.length > 0 && (
               <div className="sticker-row">
+                {stickerPacks.length > 1 && (
+                  <div className="sticker-pack-tabs">
+                    {stickerPacks.map((pack, i) => (
+                      <button
+                        key={i}
+                        className={`sticker-pack-tab ${activePack === i ? "sticker-pack-tab-active" : ""}`}
+                        onClick={() => setActivePack(i)}
+                      >
+                        {pack.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <div className="sticker-grid">
-                  {stickers.map((s, i) => (
+                  {(stickerPacks[activePack]?.stickers || []).map((s) => (
                     <button
-                      key={i}
-                      className={`sticker-btn ${selectedSticker === i ? "sticker-btn-active" : ""}`}
-                      onClick={() => setSelectedSticker(selectedSticker === i ? null : i)}
+                      key={s.index}
+                      className={`sticker-btn ${selectedSticker === s.index ? "sticker-btn-active" : ""}`}
+                      onClick={() => setSelectedSticker(selectedSticker === s.index ? null : s.index)}
                     >
                       <img
-                        src={`${apiUrl}/api/stickers/image/${i}`}
+                        src={`${apiUrl}/api/stickers/image/${s.index}`}
                         alt={s.emoji}
                         className="sticker-img"
                       />
